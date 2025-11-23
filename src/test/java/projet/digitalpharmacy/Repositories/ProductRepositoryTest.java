@@ -6,7 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import projet.digitalpharmacy.Models.Product;
-import projet.digitalpharmacy.enums.CategorieProduit;
+import projet.digitalpharmacy.Respositories.ProductRepository;
+import projet.digitalpharmacy.enums.ProductCategory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,7 +31,7 @@ class ProductRepositoryTest {
                 .prix(5.99)
                 .quantiteStock(50)
                 .codeCIP("3400931234567")
-                .categorie(CategorieProduit.MEDICAMENT)
+                .categorie(ProductCategory.MEDICAMENT)
                 .build();
 
         entityManager.persist(product);
@@ -53,7 +54,7 @@ class ProductRepositoryTest {
                 .quantiteStock(5)
                 .codeCIP("3400931234589")
                 .dateExpiration(LocalDate.now().minusDays(1))
-                .categorie(CategorieProduit.MEDICAMENT)
+                .categorie(ProductCategory.MEDICAMENT)
                 .build();
 
         Product nonPerime = Product.builder()
@@ -62,7 +63,7 @@ class ProductRepositoryTest {
                 .quantiteStock(20)
                 .codeCIP("3400931234590")
                 .dateExpiration(LocalDate.now().plusDays(30))
-                .categorie(CategorieProduit.MEDICAMENT)
+                .categorie(ProductCategory.MEDICAMENT)
                 .build();
 
         entityManager.persist(perime);
@@ -85,7 +86,7 @@ class ProductRepositoryTest {
                 .prix(8.0)
                 .quantiteStock(5)
                 .codeCIP("3400931234591")
-                .categorie(CategorieProduit.MEDICAMENT)
+                .categorie(ProductCategory.MEDICAMENT)
                 .build();
 
         Product stockNormal = Product.builder()
@@ -93,7 +94,7 @@ class ProductRepositoryTest {
                 .prix(12.0)
                 .quantiteStock(25)
                 .codeCIP("3400931234592")
-                .categorie(CategorieProduit.MEDICAMENT)
+                .categorie(ProductCategory.MEDICAMENT)
                 .build();
 
         entityManager.persist(stockFaible);
@@ -107,4 +108,4 @@ class ProductRepositoryTest {
         assertThat(stockFaibleList).hasSize(1);
         assertThat(stockFaibleList.get(0).getNom()).isEqualTo("Produit Stock Faible");
     }
-}}
+}
