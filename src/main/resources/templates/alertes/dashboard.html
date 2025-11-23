@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Alertes - Digital Pharmacy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-clinic-medical me-2"></i>Digital Pharmacy
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">
+                        <i class="fas fa-home me-1"></i>Accueil
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/web/produits">
+                        <i class="fas fa-pills me-1"></i>Produits
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/dashboard">
+                        <i class="fas fa-bell me-1"></i>Alertes
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="hero-section fade-in">
+        <h1><i class="fas fa-bell me-3"></i>Tableau de Bord des Alertes</h1>
+        <p class="lead">Surveillance en temps réel des produits nécessitant une attention</p>
+    </div>
+
+    <!-- Messages Flash -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats-grid">
+        <div class="stat-card danger pulse">
+            <div class="stat-number" th:text="${produitsPerimes.size()}">0</div>
+            <div class="stat-label">
+                <i class="fas fa-skull-crossbones me-2"></i>Produits Périmés
+            </div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-number" th:text="${produitsBientotPerimes.size()}">0</div>
+            <div class="stat-label">
+                <i class="fas fa-clock me-2"></i>Bientôt Périmés
+            </div>
+        </div>
+        <div class="stat-card info">
+            <div class="stat-number" th:text="${produitsStockFaible.size()}">0</div>
+            <div class="stat-label">
+                <i class="fas fa-boxes me-2"></i>Stock Faible
+            </div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-number" th:text="${produitsPerimes.size() + produitsBientotPerimes.size() + produitsStockFaible.size()}">0</div>
+            <div class="stat-label">
+                <i class="fas fa-list-alt me-2"></i>Total Alertes
+            </div>
+        </div>
+    </div>
+
+    <!-- Produits Périmés -->
+    <div class="card fade-in">
+        <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas fa-skull-crossbones me-2"></i>
+                    Produits Périmés
+                    <span class="badge bg-danger ms-2" th:text="${produitsPerimes.size()}"></span>
+                </span>
+            <button class="btn btn-sm btn-light" onclick="toggleSection('perimes')">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="card-body" id="section-perimes">
+            <div th:if="${#lists.isEmpty(produitsPerimes)}" class="text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5 class="text-muted">Aucun produit périmé</h5>
+                <p class="text-muted">Tous les produits sont dans les dates de validité</p>
+            </div>
+            <div th:unless="${#lists.isEmpty(produitsPerimes)}" class="row">
+                <div th:each="produit : ${produitsPerimes}" class="col-md-6 col-lg-4 mb-3">
+                    <div class="alert-card perime h-100" th:onclick="|window.location.href='/web/produits/' + ${produit.id}|">
+                        <div class="card-body">
+                            <h6 th:text="${produit.nom}" class="card-title"></h6>
+                            <p class="card-text text-muted small mb-2" th:text="${produit.description} ?: 'Aucune description'"></p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-calendar-times me-1"></i>
+                                        Périmé le <span th:text="${#temporals.format(produit.dateExpiration, 'dd/MM/yyyy')}"></span>
+                                    </span>
+                                <span class="text-danger fw-bold">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Urgent
+                                    </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Produits Bientôt Périmés -->
+    <div class="card fade-in">
+        <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas fa-clock me-2"></i>
+                    Produits Bientôt Périmés (30 jours)
+                    <span class="badge bg-warning ms-2" th:text="${produitsBientotPerimes.size()}"></span>
+                </span>
+            <button class="btn btn-sm btn-light" onclick="toggleSection('bientotPerimes')">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="card-body" id="section-bientotPerimes">
+            <div th:if="${#lists.isEmpty(produitsBientotPerimes)}" class="text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5 class="text-muted">Aucun produit bientôt périmé</h5>
+                <p class="text-muted">Tous les produits ont une bonne durée de vie</p>
+            </div>
+            <div th:unless="${#lists.isEmpty(produitsBientotPerimes)}" class="row">
+                <div th:each="produit : ${produitsBientotPerimes}" class="col-md-6 col-lg-4 mb-3">
+                    <div class="alert-card bientot-perime h-100" th:onclick="|window.location.href='/web/produits/' + ${produit.id}|">
+                        <div class="card-body">
+                            <h6 th:text="${produit.nom}" class="card-title"></h6>
+                            <p class="card-text text-muted small mb-2" th:text="${produit.description} ?: 'Aucune description'"></p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Expire le <span th:text="${#temporals.format(produit.dateExpiration, 'dd/MM/yyyy')}"></span>
+                                    </span>
+                                <small class="text-warning fw-bold">
+                                    <i class="fas fa-hourglass-half me-1"></i>
+                                    Attention
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Produits Stock Faible -->
+    <div class="card fade-in">
+        <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="fas fa-boxes me-2"></i>
+                    Produits en Stock Faible
+                    <span class="badge bg-info ms-2" th:text="${produitsStockFaible.size()}"></span>
+                </span>
+            <button class="btn btn-sm btn-light" onclick="toggleSection('stockFaible')">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div class="card-body" id="section-stockFaible">
+            <div th:if="${#lists.isEmpty(produitsStockFaible)}" class="text-center py-4">
+                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                <h5 class="text-muted">Aucun produit en stock faible</h5>
+                <p class="text-muted">Tous les stocks sont suffisants</p>
+            </div>
+            <div th:unless="${#lists.isEmpty(produitsStockFaible)}">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>Produit</th>
+                            <th>Catégorie</th>
+                            <th>Stock Actuel</th>
+                            <th>Seuil d'Alerte</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="produit : ${produitsStockFaible}">
+                            <td>
+                                <strong th:text="${produit.nom}"></strong>
+                                <br>
+                                <small class="text-muted" th:text="${produit.codeCIP}"></small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary" th:text="${produit.categorie}"></span>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-info" th:text="${produit.quantiteStock} + ' unités'"></span>
+                            </td>
+                            <td>
+                                <span class="text-muted">10 unités</span>
+                            </td>
+                            <td>
+                                <div class="btn-group-vertical btn-group-sm">
+                                    <a th:href="@{/web/produits/{id}(id=${produit.id})}"
+                                       class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye me-1"></i>Voir
+                                    </a>
+                                    <a th:href="@{/web/produits/{id}/edit(id=${produit.id})}"
+                                       class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit me-1"></i>Modifier
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions Rapides -->
+    <div class="card fade-in">
+        <div class="card-header">
+            <i class="fas fa-bolt me-2"></i>Actions Rapides
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-3 mb-3">
+                    <a href="/web/produits/nouveau" class="btn btn-success w-100">
+                        <i class="fas fa-plus me-2"></i>Nouveau Produit
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="/web/produits" class="btn btn-primary w-100">
+                        <i class="fas fa-list me-2"></i>Tous les Produits
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <a href="/api/produits/alertes/statistiques" class="btn btn-info w-100" target="_blank">
+                        <i class="fas fa-chart-bar me-2"></i>API Statistiques
+                    </a>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <button onclick="refreshData()" class="btn btn-warning w-100">
+                        <i class="fas fa-sync-alt me-2"></i>Actualiser
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+        <p class="mb-0">
+            <i class="fas fa-clinic-medical me-2"></i>
+            Digital Pharmacy &copy; 2024 - Système de Gestion des Alertes
+        </p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+-- src/main/resources/data.sql
+INSERT INTO produits (nom, description, prix, quantite_stock, date_expiration, code_cip, prescription_requise, laboratoire, numero_lot, categorie) VALUES
+                                                                                                                                                       ('Doliprane 1000mg', 'Antidouleur et antipyrétique', 5.99, 150, '2026-12-31', '3400931234567', false, 'Sanofi', 'LOT2025001', 'MEDICAMENT'),
+                                                                                                                                                       ('Smecta', 'Traitement des diarrhées', 8.50, 5, '2024-01-15', '3400931234568', false, 'Ipsen', 'LOT2024001', 'MEDICAMENT'),
+                                                                                                                                                       ('Biafine', 'Crème pour brûlures', 12.75, 3, '2025-06-30', '3400931234569', false, 'Pierre Fabre', 'LOT2025015', 'PARAPHARMACIE'),
+                                                                                                                                                       ('Voltarene Gel', 'Anti-inflammatoire local', 9.90, 25, '2024-03-20', '3400931234570', true, 'GSK', 'LOT2024120', 'MEDICAMENT'),
+                                                                                                                                                       ('Spasfon', 'Antispasmodique', 6.80, 0, '2025-09-15', '3400931234571', false, 'Teva', 'LOT2025030', 'MEDICAMENT'),
+                                                                                                                                                       ('Brosse à dents électrique', 'Brosse à dents sonique', 45.90, 12, NULL, 'BRUSH123456', false, 'Oral-B', 'LOT2024005', 'HYGIENE'),
+                                                                                                                                                       ('Crème hydratante visage', 'Soin hydratant jour', 22.50, 8, '2024-11-30', 'CREME123456', false, 'La Roche-Posay', 'LOT2024115', 'COSMETIQUE');
+
+-- Vérification
+SELECT '✅ Données de test chargées avec succès!' as status;

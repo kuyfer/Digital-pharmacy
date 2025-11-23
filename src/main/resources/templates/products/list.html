@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Produits - Digital Pharmacy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-clinic-medical me-2"></i>Digital Pharmacy
+        </a>
+        <div class="navbar-nav">
+            <a class="nav-link" href="/">Accueil</a>
+            <a class="nav-link active" href="/web/produits">Produits</a>
+            <a class="nav-link" href="/dashboard">Alertes</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <!-- En-tête avec statistiques -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="hero-section">
+                <h1><i class="fas fa-pills me-3"></i>Gestion des Produits</h1>
+                <p class="lead">Gérez votre inventaire pharmaceutique en temps réel</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Flash -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Barre d'actions -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0">
+                        <i class="fas fa-boxes me-2"></i>
+                        Inventaire des Produits
+                        <span class="badge bg-primary ms-2" th:text="${produits.size()}"></span>
+                    </h5>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="/web/produits/nouveau" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Nouveau Produit
+                    </a>
+                    <a href="/dashboard" class="btn btn-warning">
+                        <i class="fas fa-bell me-2"></i>Voir les Alertes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres et recherche -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Rechercher</label>
+                    <input type="text" class="form-control" placeholder="Nom du produit..." id="searchInput">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Catégorie</label>
+                    <select class="form-select" id="categoryFilter">
+                        <option value="">Toutes les catégories</option>
+                        <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Statut</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">Tous les statuts</option>
+                        <option value="stock_faible">Stock faible</option>
+                        <option value="bientot_perime">Bientôt périmé</option>
+                        <option value="perime">Périmé</option>
+                        <option value="normal">Normal</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des produits -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Liste des Produits
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0" id="productsTable">
+                    <thead class="table-dark">
+                    <tr>
+                        <th width="250">Produit</th>
+                        <th width="120">Catégorie</th>
+                        <th width="100">Prix</th>
+                        <th width="120">Stock</th>
+                        <th width="120">Expiration</th>
+                        <th width="150">Statut</th>
+                        <th width="200" class="text-center">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="produit : ${produits}"
+                        th:class="${produit.estPerime()} ? 'table-danger' :
+                                         (${produit.estBientotPerime()} ? 'table-warning' :
+                                         (${produit.estStockFaible()} ? 'table-info' : ''))">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="product-icon me-3">
+                                    <i class="fas fa-pills fa-lg text-primary"></i>
+                                </div>
+                                <div>
+                                    <strong th:text="${produit.nom}"></strong>
+                                    <br>
+                                    <small class="text-muted" th:text="${produit.codeCIP}"></small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                                    <span class="badge"
+                                          th:class="'bg-' + ${{
+                                            'MEDICAMENT': 'primary',
+                                            'PARAPHARMACIE': 'success',
+                                            'MATERIEL_MEDICAL': 'info',
+                                            'HYGIENE': 'warning',
+                                            'COSMETIQUE': 'dark'
+                                          }[produit.categorie?.name()] ?: 'secondary'}"
+                                          th:text="${produit.categorie}">
+                                    </span>
+                        </td>
+                        <td>
+                                    <span class="fw-bold text-success"
+                                          th:text="'€ ' + #numbers.formatDecimal(produit.prix, 1, 2)"></span>
+                        </td>
+                        <td>
+                            <div class="stock-indicator">
+                                        <span th:class="${produit.estStockFaible()} ? 'text-warning fw-bold' : 'text-success'"
+                                              th:text="${produit.quantiteStock} + ' unités'">
+                                        </span>
+                                <div th:if="${produit.estStockFaible()}" class="progress mt-1" style="height: 4px;">
+                                    <div class="progress-bar bg-warning"
+                                         th:style="'width: ' + ${produit.quantiteStock * 10} + '%;'"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                                    <span th:if="${produit.dateExpiration != null}"
+                                          th:class="${produit.estPerime()} ? 'text-danger fw-bold' :
+                                                   (${produit.estBientotPerime()} ? 'text-warning fw-bold' : 'text-success')"
+                                          th:text="${#temporals.format(produit.dateExpiration, 'dd/MM/yyyy')}">
+                                    </span>
+                            <span th:if="${produit.dateExpiration == null}" class="text-muted">-</span>
+                        </td>
+                        <td>
+                            <div class="alert-badges">
+                                        <span th:if="${produit.estPerime()}" class="badge bg-danger me-1">
+                                            <i class="fas fa-skull-crossbones me-1"></i>Périmé
+                                        </span>
+                                <span th:if="${produit.estBientotPerime()}" class="badge bg-warning me-1">
+                                            <i class="fas fa-clock me-1"></i>Bientôt
+                                        </span>
+                                <span th:if="${produit.estStockFaible()}" class="badge bg-info">
+                                            <i class="fas fa-boxes me-1"></i>Stock faible
+                                        </span>
+                                <span th:if="${!produit.estPerime() and !produit.estBientotPerime() and !produit.estStockFaible()}"
+                                      class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Normal
+                                        </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical btn-group-sm w-100">
+                                <a th:href="@{/web/produits/{id}(id=${produit.id})}"
+                                   class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Détails
+                                </a>
+                                <a th:href="@{/web/produits/{id}/modifier(id=${produit.id})}"
+                                   class="btn btn-warning btn-sm">
+                                    <i class="fas fa-edit me-1"></i>Modifier
+                                </a>
+                                <a th:href="@{/web/produits/{id}/supprimer(id=${produit.id})}"
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?');">
+                                    <i class="fas fa-trash me-1"></i>Supprimer
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(produits)}">
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Aucun produit trouvé</h5>
+                            <p class="text-muted">Commencez par ajouter votre premier produit</p>
+                            <a href="/web/produits/nouveau" class="btn btn-success">
+                                <i class="fas fa-plus me-2"></i>Ajouter un produit
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="stat-card info">
+                <div class="stat-number" th:text="${produits.size()}">0</div>
+                <div class="stat-label">Total Produits</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card warning">
+                <div class="stat-number" th:text="${produits.?[estStockFaible()].size()}">0</div>
+                <div class="stat-label">Stock Faible</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card danger">
+                <div class="stat-number" th:text="${produits.?[estPerime()].size()}">0</div>
+                <div class="stat-label">Périmés</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card success">
+                <div class="stat-number" th:text="${produits.?[estBientotPerime()].size()}">0</div>
+                <div class="stat-label">Bientôt Périmés</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/app.js"></script>
+<script>
+    // Filtrage des produits
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const tableRows = document.querySelectorAll('#productsTable tbody tr');
+
+        function filterProducts() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const categoryValue = categoryFilter.value;
+            const statusValue = statusFilter.value;
+
+            tableRows.forEach(row => {
+                const productName = row.cells[0].textContent.toLowerCase();
+                const productCategory = row.cells[1].textContent;
+                const productStatus = row.cells[5].textContent;
+
+                const matchesSearch = productName.includes(searchTerm);
+                const matchesCategory = !categoryValue || productCategory.includes(categoryValue);
+                const matchesStatus = !statusValue ||
+                    (statusValue === 'stock_faible' && productStatus.includes('Stock faible')) ||
+                    (statusValue === 'bientot_perime' && productStatus.includes('Bientôt')) ||
+                    (statusValue === 'perime' && productStatus.includes('Périmé')) ||
+                    (statusValue === 'normal' && productStatus.includes('Normal'));
+
+                row.style.display = (matchesSearch && matchesCategory && matchesStatus) ? '' : 'none';
+            });
+        }
+
+        searchInput.addEventListener('input', filterProducts);
+        categoryFilter.addEventListener('change', filterProducts);
+        statusFilter.addEventListener('change', filterProducts);
+    });
+</script>
+</body>
+</html>
