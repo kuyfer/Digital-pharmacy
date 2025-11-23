@@ -1,4 +1,9 @@
 package projet.digitalpharmacy.enums;
 
-public class ProductCategory {
+public enum ProductCategory {
+    MEDICAMENT,
+    PARAPHARMACIE,
+    MATERIEL_MEDICAL,
+    HYGIENE,
+    COSMETIQUE
 }
